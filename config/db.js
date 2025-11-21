@@ -1,19 +1,11 @@
+// config/db.js
 const mongoose = require('mongoose');
-const mongoURI = 'mongodb+srv://zeb11afridi_db_user:r2y4bK2X4vaoCXtn@cluster0.ygn6hhw.mongodb.net/indexing-url?retryWrites=true&w=majority';
 
-// const mongoURI = 'mongodb://localhost:27017/IndexingToolDB';
-// const mongoURI ='mongodb+srv://zeb11afridi_db_user:r2y4bK2X4vaoCXtn@cluster0.ygn6hhw.mongodb.net/indexing-url?retryWrites=true&w=majority
-// ';
+const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/indexing-url';
 
-
-mongoose.connect(mongoURI)
-    .then(() => console.log('MongoDB connected successfully.'))
-    .catch(err => console.error('MongoDB connection error:', err));
-
-// const mongoose = require('mongoose');
-
-// // Atlas URI
-
-// mongoose.connect(mongoURI)
-//     .then(() => console.log('MongoDB connected successfully.'))
-//     .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('MongoDB connected ✅'))
+.catch((err) => console.error('MongoDB connection error ❌', err));

@@ -1,9 +1,12 @@
 require("../config/db"); // Ensure MongoDB is connected
 const path = require("path");
 
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
-console.log("GOOGLE_PRIVATE_KEY exists?", process.env.GOOGLE_PRIVATE_KEY ? "Yes" : "No");
+console.log(
+  "GOOGLE_PRIVATE_KEY exists?",
+  process.env.GOOGLE_PRIVATE_KEY ? "Yes" : "No"
+);
 
 const { Worker } = require("bullmq");
 const mongoose = require("mongoose");
@@ -13,10 +16,21 @@ const { google } = require("googleapis");
 const Campaign = require("../models/campaignModel");
 
 // // --- CONFIGURATION ---
-console.log("first")
-console.log("DOTENV VARIABLES:", process.env.GOOGLE_PROJECT_ID, process.env.GOOGLE_CLIENT_EMAIL, process.env.GOOGLE_PRIVATE_KEY ? "OK" : "MISSING");
+console.log("first");
+console.log(
+  "DOTENV VARIABLES:",
+  process.env.GOOGLE_PROJECT_ID,
+  process.env.GOOGLE_CLIENT_EMAIL,
+  process.env.GOOGLE_PRIVATE_KEY ? "OK" : "MISSING"
+);
 
-const connection = { host: '127.0.0.1', port: 6379 };
+// const connection = { host: '127.0.0.1', port: 6379 };
+const connection = {
+  host: process.env.REDIS_HOST,
+  port: parseInt(process.env.REDIS_PORT),
+  password: process.env.REDIS_PASSWORD,
+  tls: true, // Because Upstash uses TLS
+};
 // const BING_API_KEY = process.env.BING_API_KEY || 'YOUR_BING_API_KEY';
 // const VERIFIED_DOMAINS = ['orung.com', 'sub.orung.com'];
 // const KEY_FILE_PATH = path.join(__dirname, '../google-service-account.json');
@@ -28,7 +42,7 @@ const GOOGLE_PROJECT_ID = process.env.GOOGLE_PROJECT_ID;
 const GOOGLE_CLIENT_EMAIL = process.env.GOOGLE_CLIENT_EMAIL;
 // console.log("khan",process.env.GOOGLE_PRIVATE_KEY)
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n");
-console.log("goole private key",GOOGLE_PRIVATE_KEY)
+console.log("goole private key", GOOGLE_PRIVATE_KEY);
 
 // --- HELPER FUNCTIONS ---
 
