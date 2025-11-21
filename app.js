@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 require('dotenv').config(); // Load .env first
 
+
 const cors = require('cors');
 require('./config/db'); // Initialize MongoDB connection
 const Campaign = require('./models/campaignModel'); // adjust path if needed

@@ -1,7 +1,16 @@
 // config/db.js
 const mongoose = require('mongoose');
+const path = require('path');
 
-const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/indexing-url';
+// Load .env from project root
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
+const mongoURI = process.env.MONGODB_URI;
+
+if (!mongoURI) {
+  console.error('❌ MONGODB_URI not defined. Check your .env file!');
+  process.exit(1); // Stop execution
+}
 
 mongoose.connect(mongoURI, {
   useNewUrlParser: true,
