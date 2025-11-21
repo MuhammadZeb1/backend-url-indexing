@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 require('dotenv').config(); // Load .env first
-console.log("DOTENV VARIABLES:", process.env.GOOGLE_PROJECT_ID, process.env.GOOGLE_CLIENT_EMAIL, process.env.GOOGLE_PRIVATE_KEY ? "OK" : "MISSING");
 
 const cors = require('cors');
 require('./config/db'); // Initialize MongoDB connection
