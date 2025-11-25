@@ -1,153 +1,102 @@
-// NOTE: You must replace the path below with the correct path to your Campaign model
+// utils/sitemapGenerator.js
+// Removed dependencies: fs and path are not needed for dynamic XML generation.
 const Campaign = require("../models/campaignModel");
-const fs = require("fs");
-const path = require("path");
 
 /**
  * Generates an XML sitemap string from an array of URLs.
- * @param {string[]} urls - Array of URLs to include in the sitemap.
+ * @param {string[]} urls - Array of URLs to include in the sitemap. 
  * @param {string} campaignId - The ID of the campaign, mainly for logging/context.
  * @returns {string} - A complete XML sitemap string.
  */
 function generateSitemapXml(urls, campaignId) {
-  if (!urls || urls.length === 0) {
-    return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>';
-  }
+	if (!urls || urls.length === 0) {
+		return '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>';
+	}
 
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+	let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-  const lastModDate = new Date().toISOString().split("T")[0];
+	const lastModDate = new Date().toISOString().split("T")[0];
 
-  urls.forEach((url) => {
-    if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
-      xml += `
-    <url>
-        <loc>${url}</loc>
-        <lastmod>${lastModDate}</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.8</priority>
-    </url>`;
-    }
-  });
+	const uRls= urls.forEach((url) => {
+		if (url && (url.startsWith("http://") || url.startsWith("https://"))) {
+			xml += `
+	<url>
+		<loc>${url}</loc>
+		<lastmod>${lastModDate}</lastmod>
+		<changefreq>daily</changefreq>
+		<priority>0.8</priority>
+	</url>`;
+		}
+	});
+  console.log("url",uRls)
 
-  xml += `
+	xml += `
 </urlset>`;
 
-  console.log(
-    `[Sitemap Generator] Successfully generated sitemap XML for campaign ${campaignId} with ${urls.length} URLs.`
-  );
-  return xml;
+	console.log(
+		`[Sitemap Generator] Successfully generated sitemap XML for campaign ${campaignId} with ${urls.length} sitemapUrls.`
+	);
+	return xml;
 }
 
 /**
- * Express middleware to fetch campaign data and serve the sitemap XML.
+ * Express route handler to fetch campaign data and serve the sitemap XML.
+ * This is the public endpoint: /api/sitemap/:campaignId
  */
-// async function serveSitemap(req, res) {
-//   const { campaignId } = req.params;
-//   console.log("REQUESTED SITEMAP:", campaignId);
-
-//   if (!campaignId) {
-//     return res.status(400).send("Campaign ID is required.");
-//   }
-
-//   try {
-//     // Fetch the campaign document, only selecting the sitemapUrls field
-//     const campaign = await Campaign.findById(campaignId, "urls").exec();
-//     console.log("Fetched campaign:", campaign);
-
-//     if (!campaign) {
-//       return res.status(404).send("Campaign not found.");
-//     }
-
-//     const sitemapXml = generateSitemapXml(campaign.urls, campaignId);
-
-//     // Send the correct content type for XML
-//     res.set("Content-Type", "application/xml");
-//     res.send(sitemapXml);
-//   } catch (error) {
-//     console.error(
-//       `[Sitemap Error] Failed to serve sitemap for ${campaignId}:`,
-//       error
-//     );
-//     res.status(500).send("Internal server error while generating sitemap.");
-//   }
-// }
-// async function updateSitemap() {
-//   const campaigns = await Campaign.find({}, "urls").exec();
-
-//   let xml =
-//     '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-//   const lastModDate = new Date().toISOString().split("T")[0];
-
-//   campaigns.forEach((c) => {
-//     c.urls.forEach((url) => {
-//       xml += `
-//         <url>
-//           <loc>${url}</loc>
-//           <lastmod>${lastModDate}</lastmod>
-//           <changefreq>daily</changefreq>
-//           <priority>0.8</priority>
-//         </url>`;
-//     });
-//   });
-
-//   xml += "</urlset>";
-
-//   // Save to public folder
-//   fs.writeFileSync(path.join(__dirname, "../public/sitemap-index.xml"), xml);
-//   console.log("[Sitemap] sitemap-index.xml updated!");
-// }
-
-/////////////////////////////////////////////////////////////////////////////////////
 async function serveSitemap(req, res) {
-  const { campaignId } = req.params;
+	const { campaignId } = req.params;
 
-  if (!campaignId) return res.status(400).send("Campaign ID required");
+	if (!campaignId) return res.status(400).send("Campaign ID required");
 
-  try {
-    const campaign = await Campaign.findById(campaignId).exec();
-    if (!campaign) return res.status(404).send("Campaign not found");
+	try {
+		// Fetch only 'sitemapUrls' to restrict the sitemap to 3rd party links
+		const campaign = await Campaign.findById(campaignId, "sitemapUrls").exec(); 
+		if (!campaign) return res.status(404).send("Campaign not found");
 
-    const sitemapXml = generateSitemapXml(campaign.urls, campaignId);
+		// Generate XML using the retrieved URLs
+		const sitemapXml = generateSitemapXml(campaign.sitemapUrls, campaignId);
 
-    res.set("Content-Type", "application/xml");
-    res.send(sitemapXml);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal server error while generating sitemap.");
-  }
+		// Send the correct content type for XML
+		res.set("Content-Type", "application/xml");
+		res.send(sitemapXml);
+	} catch (error) {
+		console.error(error);
+		res.status(500).send("Internal server error while generating sitemap.");
+	}
 }
 
 
+// This utility generates the XML string for the master sitemap index (if needed)
 async function updateSitemap() {
-  const campaigns = await Campaign.find({}, "urls").exec();
-  const lastModDate = new Date().toISOString().split("T")[0];
+	// For simplicity, this currently fetches all campaign URLs for a hypothetical master sitemap.
+	const campaigns = await Campaign.find({}, "urls").exec();
+	const lastModDate = new Date().toISOString().split("T")[0];
 
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+	let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
-  campaigns.forEach((c) => {
-    c.urls.forEach((url) => {
-      xml += `
-    <url>
-      <loc>${url}</loc>
-      <lastmod>${lastModDate}</lastmod>
-      <changefreq>daily</changefreq>
-      <priority>0.8</priority>
-    </url>`;
-    });
-  });
+	campaigns.forEach((c) => {
+		c.urls.forEach((url) => {
+			xml += `
+	<url>
+		<loc>${url}</loc>
+		<lastmod>${lastModDate}</lastmod>
+		<changefreq>daily</changefreq>
+		<priority>0.8</priority>
+	</url>`;
+		});
+	});
 
-  xml += `</urlset>`;
+	xml += `</urlset>`;
 
-  console.log("[Sitemap] sitemap XML generated dynamically for all campaigns");
-  return xml; // ✅ return XML string
+	console.log("[Sitemap] sitemap XML generated dynamically for all campaigns");
+	return xml; // Returns the XML string, does not save it.
 }
 
 
 module.exports = {
-  serveSitemap,
-  generateSitemapXml,
-  updateSitemap,
+	serveSitemap,
+	generateSitemapXml,
+	updateSitemap,
 };
