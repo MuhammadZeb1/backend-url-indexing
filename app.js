@@ -10,7 +10,11 @@ const path = require('path');
 
 const { serveSitemap } = require('./utlis/sitemapGenerator');
 const submissionController = require('./controllers/submissionController');
-const BASE_DOMAIN = 'https://www.orung.com';
+const RAILWAY_DOMAIN = "https://backend-url-indexing-production-b44f.up.railway.app";
+const CUSTOM_DOMAIN = "https://orung.com";
+
+// Final BASE_DOMAIN decision
+const BASE_DOMAIN = RAILWAY_DOMAIN || CUSTOM_DOMAIN || "http://localhost:5000";
 
 const app = express();
 const PORT = 5000;
