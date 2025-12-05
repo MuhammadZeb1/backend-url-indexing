@@ -10,7 +10,7 @@ const { serveSitemap } = require('./utlis/sitemapGenerator');
 const submissionController = require('./controllers/submissionController');
 
 // Set BASE_DOMAIN dynamically for Railway deployment
-const HARDCODED_RAILWAY_URL = "https://backend-url-indexing-production-b44f.up.railway.app";
+const HARDCODED_RAILWAY_URL = "https://backend-url-indexing.vercel.app";
 const BASE_DOMAIN = process.env.RAILWAY_STATIC_URL
   ? `https://${process.env.RAILWAY_STATIC_URL}`
   : process.env.RAILWAY_URL
