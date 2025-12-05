@@ -1,6 +1,6 @@
 const UserToken = require("../models/userTokenModel");
 const Campaign = require("../models/campaignModel");
-const { indexingQueue } = require("../queue/queueService");
+const agenda = require("../agenda/agenda.js");
 const { v4: uuidv4 } = require("uuid");
 const { updateSitemap } = require("../utlis/sitemapGenerator");
 
@@ -69,14 +69,13 @@ exports.submitCampaign = async (req, res) => {
     // 🔥 UPDATE SITEMAP AFTER NEW CAMPAIGN IS SAVED
     await updateSitemap();
     // --- 4. Delegate Task to Background Queue ---
-    await indexingQueue.add(
-      "index-urls",
-      { campaignId: newCampaign._id.toString(), urls: urls },
-      {
-        removeOnComplete: true,
-        removeOnFail: false,
-      }
-    );
+    // --- 4. Delegate Task to Background Queue ---
+const job = await agenda.now("index-urls", { campaignId: newCampaign._id.toString(), urls });
+console.log("Job queued:", job.attrs._id, job.attrs.name, job.attrs.nextRunAt);
+
+    agenda.on("fail", (err, job) => {
+      console.error(`Job failed ${job.attrs.name}`, err.message);
+    });
 
     return res.status(201).json({
       message: "Campaign submitted successfully!",

@@ -2,17 +2,19 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently --kill-others \"nodemon app.js\" \"nodemon queue/worker.js\"",
-    "start": "concurrently --kill-others \"node app.js\" \"node queue/worker.js\""
+   "dev": "concurrently --kill-others \"nodemon app.js\" \"nodemon agenda/agenda.js\" \"nodemon agenda/indexWorker.js\"",
+"start": "concurrently --kill-others \"node app.js\" \"node agenda/agenda.js\""
+
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "agenda": "^5.0.0",
     "axios": "^1.13.2",
     "bullmq": "^5.63.2",
     "concurrently": "^9.2.1",
