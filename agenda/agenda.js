@@ -18,6 +18,7 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 
 // Check if URL belongs to your verified domains
 const VERIFIED_DOMAINS = process.env.VERIFIED_DOMAINS?.split(',') || [];
+console.log("varify domin ",VERIFIED_DOMAINS)
 function isOwnedDomain(url) {
   try {
     const hostname = new URL(url).hostname;
