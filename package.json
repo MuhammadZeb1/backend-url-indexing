@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon app.js",
+    "dev": "concurrently --kill-others \"nodemon app.js\" \"nodemon queue/worker.js\"",
     "start": "concurrently --kill-others \"node app.js\" \"node queue/worker.js\""
   },
   "keywords": [],
