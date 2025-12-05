@@ -33,44 +33,44 @@ app.get('/api/credits', submissionController.getCredits);
 app.get('/api/campaigns', submissionController.getCampaigns);
 
 // ✅ Serve individual campaign sitemaps dynamically
-// app.get('/api/sitemap/:campaignId', serveSitemap(BASE_DOMAIN));
+app.get('/api/sitemap/:campaignId', serveSitemap(BASE_DOMAIN));
 
-// // 🔹 Sitemap Index Route
-// app.get('/sitemap-index.xml', async (req, res) => {
-//   try {
-//     const campaigns = await Campaign.find({}, '_id').exec();
-//     const lastModDate = new Date().toISOString().split('T')[0];
-
-//     let xml = `<?xml version="1.0" encoding="UTF-8"?>
-// <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
-
-//     campaigns.forEach(campaign => {
-//       xml += `
-//   <sitemap>
-//     <loc>${BASE_DOMAIN}/api/sitemap/${campaign._id}</loc>
-//     <lastmod>${lastModDate}</lastmod>
-//   </sitemap>`;
-//     });
-
-//     xml += `</sitemapindex>`;
-//     res.set('Content-Type', 'application/xml');
-//     res.send(xml);
-//   } catch (err) {
-//     console.error('[Sitemap Index Error]', err);
-//     res.status(500).send('Internal server error');
-//   }
-// });
-
-app.get('/sitemap.xml', async (req, res) => {
+// 🔹 Sitemap Index Route
+app.get('/sitemap-index.xml', async (req, res) => {
   try {
-    const sitemapXml = await updateSitemap(BASE_DOMAIN);
+    const campaigns = await Campaign.find({}, '_id').exec();
+    const lastModDate = new Date().toISOString().split('T')[0];
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+
+    campaigns.forEach(campaign => {
+      xml += `
+  <sitemap>
+    <loc>${BASE_DOMAIN}/api/sitemap/${campaign._id}</loc>
+    <lastmod>${lastModDate}</lastmod>
+  </sitemap>`;
+    });
+
+    xml += `</sitemapindex>`;
     res.set('Content-Type', 'application/xml');
-    res.send(sitemapXml);
+    res.send(xml);
   } catch (err) {
-    console.error('[Combined Sitemap Error]', err);
+    console.error('[Sitemap Index Error]', err);
     res.status(500).send('Internal server error');
   }
 });
+
+// app.get('/sitemap.xml', async (req, res) => {
+//   try {
+//     const sitemapXml = await updateSitemap(BASE_DOMAIN);
+//     res.set('Content-Type', 'application/xml');
+//     res.send(sitemapXml);
+//   } catch (err) {
+//     console.error('[Combined Sitemap Error]', err);
+//     res.status(500).send('Internal server error');
+//   }
+// });
 
 // 🔹 Robots.txt Route
 app.get('/robots.txt', async (req, res) => {
