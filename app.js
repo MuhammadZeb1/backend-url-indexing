@@ -1,44 +1,50 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-require('dotenv').config(); // Load .env first
+require('dotenv').config();
 const cors = require('cors');
-require('./config/db'); // Initialize MongoDB connection
+require('./config/db');
 const Campaign = require('./models/campaignModel');
 const path = require('path');
 
 const { serveSitemap } = require('./utlis/sitemapGenerator');
 const submissionController = require('./controllers/submissionController');
 
-// Set BASE_DOMAIN dynamically for Railway deployment
-const HARDCODED_RAILWAY_URL = "https://backend-url-indexing.vercel.app";
-const BASE_DOMAIN = process.env.RAILWAY_STATIC_URL
-  ? `https://${process.env.RAILWAY_STATIC_URL}`
-  : process.env.RAILWAY_URL
-  ? process.env.RAILWAY_URL
-  : HARDCODED_RAILWAY_URL;
+// -------------------- BASE DOMAIN --------------------
+const BASE_DOMAIN =
+  process.env.BACKEND_URL || "https://backend-url-indexing.vercel.app";
 
-console.log(`Base domain is: ${BASE_DOMAIN}`);
+console.log(`🌐 Base domain: ${BASE_DOMAIN}`);
 
 const app = express();
-const PORT = 5000;
 
-// Middleware
-app.use(cors());
+// -------------------- PORT ---------------------------
+const PORT = process.env.PORT || 5000;
+
+// -------------------- CORS ---------------------------
+app.use(cors({
+  origin: [
+    "https://frontend-indexing-url.vercel.app",
+    "http://localhost:5173"
+  ],
+  methods: ["GET", "POST"],
+  credentials: true
+}));
+
+// -------------------- MIDDLEWARE ---------------------
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API Routes
+// -------------------- API ROUTES ---------------------
 app.post('/api/submit', submissionController.submitCampaign);
 app.get('/api/credits', submissionController.getCredits);
 app.get('/api/campaigns', submissionController.getCampaigns);
 
-// ✅ Serve individual campaign sitemaps dynamically
+// -------------------- SITEMAPS -----------------------
 app.get('/api/sitemap/:campaignId', serveSitemap(BASE_DOMAIN));
 
-// 🔹 Sitemap Index Route
 app.get('/sitemap-index.xml', async (req, res) => {
   try {
-    const campaigns = await Campaign.find({}, '_id').exec();
+    const campaigns = await Campaign.find({}, '_id');
     const lastModDate = new Date().toISOString().split('T')[0];
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -53,6 +59,7 @@ app.get('/sitemap-index.xml', async (req, res) => {
     });
 
     xml += `</sitemapindex>`;
+
     res.set('Content-Type', 'application/xml');
     res.send(xml);
   } catch (err) {
@@ -61,32 +68,15 @@ app.get('/sitemap-index.xml', async (req, res) => {
   }
 });
 
-// app.get('/sitemap.xml', async (req, res) => {
-//   try {
-//     const sitemapXml = await updateSitemap(BASE_DOMAIN);
-//     res.set('Content-Type', 'application/xml');
-//     res.send(sitemapXml);
-//   } catch (err) {
-//     console.error('[Combined Sitemap Error]', err);
-//     res.status(500).send('Internal server error');
-//   }
-// });
-
-// 🔹 Robots.txt Route
-app.get('/robots.txt', async (req, res) => {
-  try {
-    let robotsTxt = `User-agent: *\nDisallow: /admin/\n`;
-    robotsTxt += `Sitemap: ${BASE_DOMAIN}/sitemap-index.xml\n`;
-
-    res.type('text/plain');
-    res.send(robotsTxt);
-  } catch (err) {
-    console.error('[Robots.txt Error]', err);
-    res.status(500).send('Internal server error');
-  }
+// -------------------- ROBOTS.TXT ---------------------
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.send(`User-agent: *
+Disallow: /admin/
+Sitemap: ${BASE_DOMAIN}/sitemap-index.xml`);
 });
 
-// Start Server
+// -------------------- START SERVER -------------------
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
